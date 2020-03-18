@@ -10,7 +10,7 @@
     #define MENU_USERAM
   #endif
 #endif
-#if defined(ESP8266)
+#if defined(ESP8266) | defined(ESP32)
   #define MENU_ASYNC
   #define MENU_FMT_WRAPS
   #define MENU_IDLE_BKGND
