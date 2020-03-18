@@ -179,6 +179,9 @@ public:
         if (nav.root->navFocus!=nav.target) {//on sd card entry
           nav.sel=((SDMenuT<FS>*)(&item))->entryIdx(((SDMenuT<FS>*)(&item))->selectedFile)+USE_BACKDOTS;//restore context
         }
+        break;
+      default:
+        break;
     }
     return proceed;
   }
@@ -216,6 +219,9 @@ public:
           nav.sel=SDMenuT<FS>::entryIdx(fn)+USE_BACKDOTS;
         }
         return;
+        break;
+      default:
+        break;
     }
     menuNode::doNav(nav,cmd);
   }
