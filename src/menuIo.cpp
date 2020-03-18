@@ -169,9 +169,11 @@ result outputsList::idle(idleFunc f,idleEvent e,bool idleChanged) {
         } else return quit;
         break;
       case idling:
-      trace(MENU_DEBUG_OUT<<"idling"<<endl);
-        if (o.style&menuOut::redraw||(idleChanged&&(o.style&menuOut::minimalRedraw)))
-          return (*f)(o,e);
+        trace(MENU_DEBUG_OUT<<"idling"<<endl);
+        if (o.style&menuOut::redraw||(idleChanged&&(o.style&menuOut::minimalRedraw))||(idleChanged&&(o.style&menuOut::drawNumIndex))) {
+            result r=(*f)(o,idling);
+            if (r==quit) return r;
+        }
         break;
       case idleEnd:
         trace(MENU_DEBUG_OUT<<"idle end"<<endl);
