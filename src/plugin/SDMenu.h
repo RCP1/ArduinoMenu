@@ -6,6 +6,7 @@
 // IO: Serial
 // Feb 2019 - Rui Azevedo [ruihfazevedo@gmail.com]
 #include <menu.h>
+#include <menuBase.h>
 
 using namespace Menu;
 
@@ -191,14 +192,12 @@ public:
       case enterCmd: if (nav.sel>=USE_BACKDOTS) {
           String selFile=SDMenuT<FS>::entry(nav.sel-USE_BACKDOTS);
           if (selFile.endsWith("/")) {
-            // Serial.print("\nOpen folder...");
             //open folder (reusing the menu)
             folderName+=selFile;
             SDMenuT<FS>::goFolder(folderName);
             dirty=true;//redraw menu
             nav.sel=0;
           } else {
-            //Serial.print("\nFile selected:");
             //select a file and return
             selectedFile=selFile;
             selectedFolder=folderName;
@@ -228,16 +227,28 @@ public:
 
   //print menu and items as this is a virtual data menu
   Used printTo(navRoot &root,bool sel,menuOut& out, idx_t idx,idx_t len,idx_t pn) {
+    idx_t r = len;
+    trace(MENU_DEBUG_OUT<<*(prompt*)this<<" SDMenuT::printTo"<<endl);
+    #ifdef MENU_FMT_WRAPS
+      out.fmtStart(*this,menuOut::fmtPrompt,root.node(),idx);
+    #endif
     if(root.navFocus!=this) {//show given title or filename if selected
-      return selectedFile==""?
-        /*menuNode::printTo(root,sel,out,idx,len,pn)*/
-        out.printRaw(shadow->text,len):
-        out.printRaw(selectedFile.c_str(),len);
+      int test1 = selectedFile=="";
+      trace(MENU_DEBUG_OUT<<*(prompt*)this<<" not in focus, show title?"<<test1<<endl);
+      r = selectedFile==""? out.printRaw(shadow->text,len) : out.printRaw(selectedFile.c_str(),len);
+      #ifdef MENU_FMT_WRAPS
+        out.fmtEnd(*this,menuOut::fmtPrompt,root.node(),idx);
+      #endif
+      return r;
     } else if(idx==-1) {//when menu open (show folder name)
       ((menuNodeShadow*)shadow)->sz=SDMenuT<FS>::count()+USE_BACKDOTS;
       idx_t at=folderName.lastIndexOf("/",folderName.length()-2)+1;
       String fn=folderName.substring(at,folderName.length()-1);
-      return out.printRaw(fn.c_str(),len);
+      r = out.printRaw(fn.c_str(),len);
+      #ifdef MENU_FMT_WRAPS
+        out.fmtEnd(*this,menuOut::fmtPrompt,root.node(),idx);
+      #endif
+      return r;
       // return out.printRaw(folderName.c_str(),len);
       // return out.printRaw(SDMenuT<FS>::dir.name(),len);
     }
@@ -246,8 +257,14 @@ public:
     idx_t i=out.tops[root.level]+idx;
     if (i<USE_BACKDOTS) len-=out.printRaw("[..]",len);
     else len-=out.printRaw(SDMenuT<FS>::entry(out.tops[root.level]+idx-USE_BACKDOTS).c_str(),len);
+    
+  #ifdef MENU_FMT_WRAPS
+    out.fmtEnd(*this,menuOut::fmtPrompt,root.node(),idx);
+  #endif
     return len;
   }
+  
+  const char* typeName() const override {return "menu";}
 };
 
 class SDMenu:public SDMenuT<FSO<decltype(SD)>> {
